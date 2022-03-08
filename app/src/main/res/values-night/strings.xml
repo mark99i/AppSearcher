@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="switch_system_apps">System apps</string>
+    <string name="switch_recently_apps">Recently apps</string>
+    <string name="switch_use_google">Google</string>
+</resources>

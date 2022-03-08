@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="30dp"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/main_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        android:focusedByDefault="true"
+        android:focusableInTouchMode="true"
+        android:focusable="true"
+        android:lines="1"
+        tools:ignore="Autofill,LabelFor,TextFields" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/main_recently_apps_layout"
+        android:paddingVertical="10dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/main_fast_start1"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="5dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/main_fast_start2"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="10dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/main_fast_start3"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="10dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/main_fast_start4"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="10dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/main_fast_start5"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="10dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            tools:ignore="ContentDescription" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <com.github.ybq.android.spinkit.SpinKitView
+        style="@style/SpinKitView.Large.CubeGrid"
+        android:id="@+id/main_loading_progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:padding="15dp"
+        android:layout_marginBottom="400dp"
+        />
+
+    <ListView
+        android:id="@+id/main_list"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:visibility="gone"
+        />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_weight="4.5"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:layout_marginTop="10dp">
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/main_system_app_visible"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:text="@string/switch_system_apps"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/main_use_google"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:text="@string/switch_use_google"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/main_recently_apps"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:text="@string/switch_recently_apps"/>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.appcompat.widget.LinearLayoutCompat>
