@@ -1,5 +1,6 @@
 package ru.mark99.appsearcher;
 
+import static ru.mark99.appsearcher.Utils.openContact;
 import static ru.mark99.appsearcher.Utils.searchQuery;
 
 import android.content.Context;
@@ -37,12 +38,12 @@ public class MainActivity extends AppCompatActivity {
     SwitchMaterial recentlyAppVisible;
     SwitchMaterial useGoogle;
     LinearLayoutCompat recentlyAppsLayout;
-    ArrayList<AppItem> fullInstalledApps;
-    ArrayList<AppItem> filteredInstalledApps;
+    ArrayList<ItemInList> fullInstalledApps;
+    ArrayList<ItemInList> filteredInstalledApps;
     ArrayList<ImageView> fastStartAppsIV = new ArrayList<>();
 
     AppAdapter adapter;
-    FastStartApps fastStartApps = new FastStartApps();
+    FastStart fastStartApps = new FastStart();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +74,7 @@ public class MainActivity extends AppCompatActivity {
         for (ImageView imageView : fastStartAppsIV){
             imageView.setOnClickListener(view -> {
                 if (view.getTag() != null){
-                    AppItem appItem = Utils.findByPackage(fullInstalledApps, (String) view.getTag());
-                    if (appItem != null) onAppItemClick(appItem);
+                    onItemInListClick((ItemInList) view.getTag());
                 }
             });
         }
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                 onInputTextChanged();
             }
         });
-        listView.setOnItemClickListener((adapterView, view, i, l) -> onAppItemClick(filteredInstalledApps.get(i)));
+        listView.setOnItemClickListener((adapterView, view, i, l) -> onItemInListClick(filteredInstalledApps.get(i)));
         systemAppVisible.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged());
         recentlyAppVisible.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged());
         useGoogle.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged());
@@ -126,43 +126,48 @@ public class MainActivity extends AppCompatActivity {
 
         if (query.contains("\n")) {
             if (filteredInstalledApps.size() == 0) return;
-            onAppItemClick(filteredInstalledApps.get(0));   // Handle Enter: start first app in list
+            onItemInListClick(filteredInstalledApps.get(0));   // Handle Enter: start first app in list
         }
 
         filteredInstalledApps.clear();
-        for (AppItem appItem : fullInstalledApps) {
-            if (appItem.getName().toLowerCase().contains(query.toLowerCase()))
-                filteredInstalledApps.add(appItem);
+        for (ItemInList ItemInList : fullInstalledApps) {
+            if (ItemInList.name.toLowerCase().contains(query.toLowerCase()))
+                filteredInstalledApps.add(ItemInList);
         }
 
         if (query.length() > 0){
             // Search in internet item
-            AppItem item = new AppItem(
+            ItemInList item = new ItemInList(
                     "Search in the Internet",
                     AppCompatResources.getDrawable(this, R.drawable.ic_search_internet_24),
-                    "_search_",
-                    false);
+                    "_search_", ItemInList.Type.SearchInInternet);
             filteredInstalledApps.add(item);
         }
 
         adapter.notifyDataSetChanged();
     }
 
-    private void onAppItemClick(AppItem clicked){
-        if (Objects.equals(clicked.getPackages(), "_search_")){
+    private void onItemInListClick(ItemInList clicked){
+        if (clicked.type == ItemInList.Type.SearchInInternet){
             searchQuery(this, textInput.getText().toString(), sharedPreferences.getBoolean("useGoogle", false));
             finish();
             return;
         }
 
-        Intent intent = getPackageManager().getLaunchIntentForPackage(clicked.getPackages());
+        if (clicked.type == ItemInList.Type.Contact){
+            openContact(this, clicked.uri);
+            finish();
+            return;
+        }
+
+        Intent intent = getPackageManager().getLaunchIntentForPackage(clicked.packageName);
         if(intent != null){
             startActivity(intent);
             fastStartApps.addNewItemAndSave(sharedPreferences, clicked);
             finish();
         }
         else {
-            Toast.makeText(this, clicked.getName() + " can't be open (no have launch intent)",
+            Toast.makeText(this, clicked.name + " can't be open (no have launch intent)",
                     Toast.LENGTH_SHORT).show();
         }
     }
@@ -176,7 +181,8 @@ public class MainActivity extends AppCompatActivity {
 
         boolean recenltyEnabled = sharedPreferences.getBoolean("showRecentlyApps", true);
 
-        ArrayList<AppItem> loaded = Utils.getInstalledApps(this, sharedPreferences.getBoolean("showSystem", false));
+        ArrayList<ItemInList> loaded = Utils.getInstalledApps(this, sharedPreferences.getBoolean("showSystem", false));
+        //ArrayList<ItemInList> loaded = Utils.getContacts(this);
         fastStartApps.load(sharedPreferences, loaded);
 
         this.runOnUiThread(() -> {

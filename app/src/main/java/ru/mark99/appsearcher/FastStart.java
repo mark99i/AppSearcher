@@ -8,16 +8,16 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 import java.util.Collections;
 
-class FastStartApps {
-   ArrayList<AppItem> storage = new ArrayList<>();
+class FastStart {
+   ArrayList<ItemInList> storage = new ArrayList<>();
 
-   void load(SharedPreferences sp, ArrayList<AppItem> fullList) {
+   void load(SharedPreferences sp, ArrayList<ItemInList> fullList) {
       String strApps = sp.getString("fast_start_apps", "");
       String[] arrStrApps = strApps.split(",");
 
       storage.clear();
       for (String packageName : arrStrApps) {
-         AppItem app = findByPackage(fullList, packageName);
+         ItemInList app = findByPackage(fullList, packageName);
          if (app == null) continue;
 
          storage.add(app);
@@ -27,18 +27,18 @@ class FastStartApps {
    }
 
    void applyToActivity(ArrayList<ImageView> imageViews){
-      ArrayList<AppItem> applyingList = new ArrayList<>(storage);
+      ArrayList<ItemInList> applyingList = new ArrayList<>(storage);
       Collections.reverse(applyingList);
 
       for (int i = 0; i < applyingList.size(); i++) {
          ImageView image = imageViews.get(i);
-         AppItem app = applyingList.get(i);
-         image.setImageDrawable(app.getIcon());
-         image.setTag(app.getPackages());
+         ItemInList app = applyingList.get(i);
+         image.setImageDrawable(app.icon);
+         image.setTag(app);
       }
    }
 
-   void addNewItemAndSave(SharedPreferences sp, AppItem item){
+   void addNewItemAndSave(SharedPreferences sp, ItemInList item){
       if (!storage.contains(item))
          storage.add(item);
 
@@ -46,8 +46,8 @@ class FastStartApps {
          storage.remove(0);
 
       ArrayList<String> arrStrApp = new ArrayList<>();
-      for (AppItem app : storage)
-         arrStrApp.add(app.getPackages());
+      for (ItemInList app : storage)
+         arrStrApp.add(app.packageName);
 
       SharedPreferences.Editor editor = sp.edit();
       String strApps = String.join(",", arrStrApp);
