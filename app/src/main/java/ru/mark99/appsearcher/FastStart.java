@@ -2,16 +2,24 @@ package ru.mark99.appsearcher;
 
 import static ru.mark99.appsearcher.Utils.findByPackage;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
+
+import androidx.appcompat.content.res.AppCompatResources;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 class FastStart {
+   Drawable noneAppIcon;
    ArrayList<ItemInList> storage = new ArrayList<>();
 
-   void load(SharedPreferences sp, ArrayList<ItemInList> fullList) {
+   void load(Context context, SharedPreferences sp, ArrayList<ItemInList> fullList) {
+      noneAppIcon = AppCompatResources.getDrawable(context, R.drawable.ic_baseline_texture_24);
+      if (noneAppIcon != null) noneAppIcon.setAlpha(80);
+
       String strApps = sp.getString("fast_start_apps", "");
       String[] arrStrApps = strApps.split(",");
 
@@ -30,11 +38,18 @@ class FastStart {
       ArrayList<ItemInList> applyingList = new ArrayList<>(storage);
       Collections.reverse(applyingList);
 
-      for (int i = 0; i < applyingList.size(); i++) {
+      for (int i = 0; i < 5; i++) {
          ImageView image = imageViews.get(i);
-         ItemInList app = applyingList.get(i);
-         image.setImageDrawable(app.icon);
-         image.setTag(app);
+
+         if (i >= applyingList.size()){
+            image.setImageDrawable(noneAppIcon);
+            image.setTag(null);
+         }
+         else {
+            ItemInList app = applyingList.get(i);
+            image.setImageDrawable(app.icon);
+            image.setTag(app);
+         }
       }
    }
 
@@ -45,6 +60,10 @@ class FastStart {
       while (storage.size() > 5)
          storage.remove(0);
 
+      save(sp);
+   }
+
+   private void save(SharedPreferences sp){
       ArrayList<String> arrStrApp = new ArrayList<>();
       for (ItemInList app : storage)
          arrStrApp.add(app.packageName);
@@ -53,5 +72,10 @@ class FastStart {
       String strApps = String.join(",", arrStrApp);
       editor.putString("fast_start_apps", strApps);
       editor.apply();
+   }
+
+   void removeItem(SharedPreferences sp, ItemInList item){
+      storage.remove(item);
+      save(sp);
    }
 }

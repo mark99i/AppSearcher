@@ -15,6 +15,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.widget.Toast;
 
 import androidx.appcompat.content.res.AppCompatResources;
 
@@ -132,10 +133,19 @@ class Utils {
       } catch (UnsupportedEncodingException ignored) {}
    }
 
-   public static void openContact(Context context, Uri uri){
-      Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+   public static void openContact(Context context, ItemInList item){
+      Intent intent = new Intent(Intent.ACTION_VIEW, item.uri);
       if (intent.resolveActivity(context.getPackageManager()) != null) {
          context.startActivity(intent);
       }
+   }
+
+   public static void openApp(Context context, ItemInList item){
+      Intent intent = context.getPackageManager().getLaunchIntentForPackage(item.packageName);
+      if(intent != null)
+         context.startActivity(intent);
+      else
+         Toast.makeText(context, item.name + " can't be open (no have launch intent)",
+                 Toast.LENGTH_SHORT).show();
    }
 }

@@ -9,9 +9,11 @@ android {
         applicationId "ru.mark99.appsearcher"
         minSdk 26
         targetSdk 31
-        versionCode 3
-        versionName "1.2"
+        versionCode 4
+        versionName "1.5"
 
+        project.archivesBaseName = "AppSearcher.v" + defaultConfig.versionName
+        project.ext.set("archivesBaseName", "AppSearcher.v" + defaultConfig.versionName)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.room.Dao;
 import androidx.room.Entity;
 import androidx.room.Insert;
@@ -29,7 +30,8 @@ public class ItemInList {
         SystemApp,
         App,
         Contact,
-        SearchInInternet
+        SearchInInternet,
+        ReloadCache
     }
 
     @PrimaryKey(autoGenerate = true) int id;
@@ -40,16 +42,29 @@ public class ItemInList {
     Uri uri;
     Type type;
 
+    static ItemInList getSearchInInternetItem(Context context){
+        ItemInList item = new ItemInList();
+        item.icon = AppCompatResources.getDrawable(context, R.drawable.ic_search_internet_24);
+        item.name = "Search in the Internet";
+        item.type = ItemInList.Type.SearchInInternet;
+        return item;
+    }
+
+    static ItemInList getReloadCacheItem(Context context){
+        ItemInList item = new ItemInList();
+        item.icon = AppCompatResources.getDrawable(context, R.drawable.ic_baseline_autorenew_24);
+        item.name = "Reload cache";
+        item.type = Type.ReloadCache;
+        return item;
+    }
+
     @Dao
     public interface ItemInListDao {
         @Query("SELECT * FROM cachedItems")
         List<ItemInList> getAll();
 
-        @Query("SELECT * FROM cachedItems WHERE name LIKE '%' || :name || '%' AND type <> 'SystemApp'")
+        @Query("SELECT * FROM cachedItems WHERE name LIKE '%' || :name || '%'")
         List<ItemInList> findByName(String name);
-
-        @Query("SELECT * FROM cachedItems WHERE name LIKE '%' || :name || '%' ")
-        List<ItemInList> findByNameWithSystemApps(String name);
 
         @Insert
         void insertAll(List<ItemInList> item);

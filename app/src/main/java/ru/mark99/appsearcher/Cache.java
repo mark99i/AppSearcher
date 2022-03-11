@@ -7,13 +7,13 @@ import androidx.room.Room;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 class Cache {
    public static WeakReference<Context> ContextLink = null;
    CachedItemsDatabase db = null;
 
+   @SuppressWarnings("ResultOfMethodCallIgnored")
    Cache(Context context){
       ContextLink = new WeakReference<>(context);
       boolean res = openDatabase();
@@ -42,20 +42,5 @@ class Cache {
       dao.deleteAll();
       dao.insertAll(items);
       Log.i("CacheDB", "Saved " + items.size() + " positions");
-   }
-
-   ArrayList<ItemInList> resolveQuery(String query, boolean loadSystemApps){
-      List<ItemInList> list;
-
-      if (query.length() == 0){
-         list = this.db.inListDao().getAll();
-      } else {
-         list = loadSystemApps ?
-                 this.db.inListDao().findByNameWithSystemApps(query) :
-                 this.db.inListDao().findByName(query);
-      }
-
-      Log.i("CacheDB", "Returned " + list.size() + " positions by '" + query + "' query, loadsystemapps = " + loadSystemApps);
-      return new ArrayList<>(list);
    }
 }
