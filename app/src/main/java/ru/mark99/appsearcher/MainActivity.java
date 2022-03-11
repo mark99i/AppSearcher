@@ -3,19 +3,24 @@ package ru.mark99.appsearcher;
 import static ru.mark99.appsearcher.Utils.openContact;
 import static ru.mark99.appsearcher.Utils.searchQuery;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
@@ -25,18 +30,19 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
 
+    Button reloadCache;
     ProgressBar loadingPB;
     EditText textInput;
     ListView listView;
     SwitchMaterial systemAppVisible;
     SwitchMaterial recentlyAppVisible;
     SwitchMaterial useGoogle;
+    SwitchMaterial useContacts;
     LinearLayoutCompat recentlyAppsLayout;
     ArrayList<ItemInList> fullInstalledApps;
     ArrayList<ItemInList> filteredInstalledApps;
@@ -44,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
     AppAdapter adapter;
     FastStart fastStartApps = new FastStart();
+
+    Cache cache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
         if (actionBar != null) actionBar.hide();
 
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
-
         textInput = findViewById(R.id.main_input);
         listView = findViewById(R.id.main_list);
         systemAppVisible = findViewById(R.id.main_system_app_visible);
@@ -62,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
         useGoogle = findViewById(R.id.main_use_google);
         recentlyAppsLayout = findViewById(R.id.main_recently_apps_layout);
         loadingPB = findViewById(R.id.main_loading_progress_bar);
+        reloadCache = findViewById(R.id.main_reload_cache);
+        useContacts = findViewById(R.id.main_load_contacts);
 
         fastStartAppsIV = new ArrayList<>(Arrays.asList(
                 findViewById(R.id.main_fast_start1),
@@ -82,6 +91,9 @@ public class MainActivity extends AppCompatActivity {
         systemAppVisible.setChecked(sharedPreferences.getBoolean("showSystem", false));
         recentlyAppVisible.setChecked(sharedPreferences.getBoolean("showRecentlyApps", true));
         useGoogle.setChecked(sharedPreferences.getBoolean("useGoogle", false));
+        useContacts.setChecked(
+                sharedPreferences.getBoolean("useContacts", false) &&
+                checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED);
 
         filteredInstalledApps = new ArrayList<>();
         adapter = new AppAdapter(this, filteredInstalledApps);
@@ -107,8 +119,21 @@ public class MainActivity extends AppCompatActivity {
         systemAppVisible.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged());
         recentlyAppVisible.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged());
         useGoogle.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged());
+        useContacts.setOnCheckedChangeListener((compoundButton, b) -> checkAndRequestContactsPermissions());
+        reloadCache.setOnClickListener(view -> new Thread(() -> {
+            cache.db.inListDao().deleteAll();
+            loadInstalledAppsAsync();
+        }).start());
 
         new Thread(this::loadInstalledAppsAsync).start();
+    }
+
+    private void checkAndRequestContactsPermissions(){
+        if (useContacts.isChecked() && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, 1999);
+            return;
+        }
+        onSwitchesChanged();
     }
 
     private void onSwitchesChanged(){
@@ -116,10 +141,12 @@ public class MainActivity extends AppCompatActivity {
         editor.putBoolean("showSystem", systemAppVisible.isChecked());
         editor.putBoolean("showRecentlyApps", recentlyAppVisible.isChecked());
         editor.putBoolean("useGoogle", useGoogle.isChecked());
+        editor.putBoolean("useContacts", useContacts.isChecked());
         editor.apply();
         new Thread(this::loadInstalledAppsAsync).start();
     }
 
+    @SuppressWarnings("CommentedOutCode")
     private void onInputTextChanged(){
         String query = textInput.getText().toString();
         if (fullInstalledApps == null || fullInstalledApps.size() == 0) return;
@@ -129,18 +156,26 @@ public class MainActivity extends AppCompatActivity {
             onItemInListClick(filteredInstalledApps.get(0));   // Handle Enter: start first app in list
         }
 
+        boolean sysApps = sharedPreferences.getBoolean("showSystem", false);
+        boolean contacts = sharedPreferences.getBoolean("useContacts", false);
+
         filteredInstalledApps.clear();
-        for (ItemInList ItemInList : fullInstalledApps) {
-            if (ItemInList.name.toLowerCase().contains(query.toLowerCase()))
-                filteredInstalledApps.add(ItemInList);
+        //filteredInstalledApps.addAll(cache.ge(query, sharedPreferences.getBoolean("showSystem", false)));
+
+        for (ItemInList item : fullInstalledApps) {
+            if (item.name.toLowerCase().contains(query.toLowerCase())) {
+                if (item.type == ItemInList.Type.Contact && !contacts) continue;
+                if (item.type == ItemInList.Type.SystemApp && !sysApps) continue;
+                filteredInstalledApps.add(item);
+            }
         }
 
         if (query.length() > 0){
             // Search in internet item
-            ItemInList item = new ItemInList(
-                    "Search in the Internet",
-                    AppCompatResources.getDrawable(this, R.drawable.ic_search_internet_24),
-                    "_search_", ItemInList.Type.SearchInInternet);
+            ItemInList item = new ItemInList();
+            item.icon = AppCompatResources.getDrawable(this, R.drawable.ic_search_internet_24);
+            item.name = "Search in the Internet";
+            item.type = ItemInList.Type.SearchInInternet;
             filteredInstalledApps.add(item);
         }
 
@@ -173,20 +208,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadInstalledAppsAsync(){
-        this.runOnUiThread(() -> loadingPB.setVisibility(View.VISIBLE));
-        this.runOnUiThread(() -> listView.setVisibility(View.GONE));
-        this.runOnUiThread(() -> recentlyAppsLayout.setVisibility(View.GONE));
-        this.runOnUiThread(() -> systemAppVisible.setEnabled(false));
-        this.runOnUiThread(() -> recentlyAppVisible.setEnabled(false));
+        this.runOnUiThread(() -> {
+            loadingPB.setVisibility(View.VISIBLE);
+            listView.setVisibility(View.GONE);
+            recentlyAppsLayout.setVisibility(View.GONE);
+            systemAppVisible.setEnabled(false);
+            recentlyAppVisible.setEnabled(false);
+            useContacts.setEnabled(false);
+            reloadCache.setEnabled(false);
+        });
 
         boolean recenltyEnabled = sharedPreferences.getBoolean("showRecentlyApps", true);
 
-        ArrayList<ItemInList> loaded = Utils.getInstalledApps(this, sharedPreferences.getBoolean("showSystem", false));
-        //ArrayList<ItemInList> loaded = Utils.getContacts(this);
+        cache = new Cache(this);
+
+        ArrayList<ItemInList> loaded = cache.resolveQuery("", true);
+        if (loaded.size() == 0)
+        {
+            Log.i("loadInstalledAppsAsync", "Load cache is 0 positions, full info loading...");
+            loaded = Utils.getInstalledApps(this, true);
+            if (useContacts.isChecked())
+                loaded.addAll(Utils.getContacts(this));
+            cache.saveToCacheFull(loaded);
+        }
+
         fastStartApps.load(sharedPreferences, loaded);
 
+        ArrayList<ItemInList> finalLoaded = loaded;
         this.runOnUiThread(() -> {
-            fullInstalledApps = loaded;
+            fullInstalledApps = finalLoaded;
             onInputTextChanged();
 
             if (recenltyEnabled){
@@ -202,6 +252,8 @@ public class MainActivity extends AppCompatActivity {
         this.runOnUiThread(() -> listView.setVisibility(View.VISIBLE));
         this.runOnUiThread(() -> systemAppVisible.setEnabled(true));
         this.runOnUiThread(() -> recentlyAppVisible.setEnabled(true));
+        this.runOnUiThread(() -> useContacts.setEnabled(true));
+        this.runOnUiThread(() -> reloadCache.setEnabled(true));
     }
 
     @Override
@@ -211,8 +263,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        finish();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode != 1999) return;
+
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+            useContacts.setChecked(true);
+            onSwitchesChanged();
+            reloadCache.performClick();
+        } else {
+            useContacts.setChecked(false);
+            Toast.makeText(this, "No read_contacts permissions", Toast.LENGTH_SHORT).show();
+        }
     }
 }

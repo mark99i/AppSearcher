@@ -1,7 +1,6 @@
 package ru.mark99.appsearcher;
 
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -55,12 +54,8 @@ class Utils {
                   ItemInList info = new ItemInList();
                   info.type = ItemInList.Type.Contact;
                   info.uri = person;
-                  info.id = id;
                   info.name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                   if (findByName(list, info.name) != null) continue;
-
-                  info.name = String.valueOf(id);
-
                   info.number = cursorInfo.getString(cursorInfo.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                   info.icon = inputStream != null ?
                           new BitmapDrawable(context.getResources(), photo) :
@@ -93,7 +88,12 @@ class Utils {
          String packages = p.applicationInfo.packageName;
          if (Objects.equals(thisAppPackage, packages)) continue;
 
-         apps.add(new ItemInList(appName, icon, packages, isSystem ? ItemInList.Type.SystemApp : ItemInList.Type.App));
+         ItemInList item = new ItemInList();
+         item.type = isSystem ? ItemInList.Type.SystemApp : ItemInList.Type.App;
+         item.name = appName;
+         item.icon = icon;
+         item.packageName = packages;
+         apps.add(item);
       }
 
       return apps;

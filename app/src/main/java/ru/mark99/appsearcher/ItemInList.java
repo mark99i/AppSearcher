@@ -1,9 +1,30 @@
 package ru.mark99.appsearcher;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 
-class ItemInList {
+import androidx.annotation.NonNull;
+import androidx.room.Dao;
+import androidx.room.Entity;
+import androidx.room.Insert;
+import androidx.room.PrimaryKey;
+import androidx.room.Query;
+import androidx.room.TypeConverter;
+import androidx.room.TypeConverters;
+
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.Objects;
+
+@Entity(tableName = "cachedItems")
+@TypeConverters({ItemInList.TConverter.class})
+public class ItemInList {
     enum Type {
         SystemApp,
         App,
@@ -11,20 +32,72 @@ class ItemInList {
         SearchInInternet
     }
 
-    String id;
-    String name;
-    String number;
+    @PrimaryKey(autoGenerate = true) int id;
+    @NonNull String name = "";
+    @NonNull String number = "";
     Drawable icon;
-    String packageName;
+    @NonNull String packageName = "";
     Uri uri;
     Type type;
 
-    public ItemInList(){}
+    @Dao
+    public interface ItemInListDao {
+        @Query("SELECT * FROM cachedItems")
+        List<ItemInList> getAll();
 
-    public ItemInList(String name, Drawable icon, String packageName, Type type) {
-        this.name = name;
-        this.icon = icon;
-        this.packageName = packageName;
-        this.type = type;
+        @Query("SELECT * FROM cachedItems WHERE name LIKE '%' || :name || '%' AND type <> 'SystemApp'")
+        List<ItemInList> findByName(String name);
+
+        @Query("SELECT * FROM cachedItems WHERE name LIKE '%' || :name || '%' ")
+        List<ItemInList> findByNameWithSystemApps(String name);
+
+        @Insert
+        void insertAll(List<ItemInList> item);
+
+        @Query("DELETE FROM cachedItems")
+        void deleteAll();
+    }
+
+    public static class TConverter {
+        @TypeConverter
+        public byte[] DrawableToBytes(Drawable drawable){
+            Context context = Cache.ContextLink.get();
+            if (context == null){
+                Log.e("BytestoDrawable", "context == null, returns null");
+                return null;
+            }
+
+            final Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            final Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            return stream.toByteArray();
+        }
+
+        @TypeConverter
+        public Drawable BytestoDrawable(byte[] bytes){
+            Context context = Cache.ContextLink.get();
+            if (context == null){
+                Log.e("BytestoDrawable", "context == null, returns null");
+                return null;
+            }
+            return new BitmapDrawable(context.getResources(), BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+        }
+
+        @TypeConverter
+        public String UriToString(Uri uri){
+            if (uri == null) return "";
+            return uri.toString();
+        }
+
+        @TypeConverter
+        public Uri StringToUri(String str){
+            if (Objects.equals(str, "")) return null;
+            return Uri.parse(str);
+        }
     }
 }
+

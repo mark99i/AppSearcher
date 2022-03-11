@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="30dp"
+    android:animateLayoutChanges="true"
     tools:context=".MainActivity">
 
     <EditText
@@ -71,12 +72,15 @@
         style="@style/SpinKitView.Large.CubeGrid"
         android:id="@+id/main_loading_progress_bar"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:padding="15dp"
-        android:layout_marginBottom="400dp"
+        android:layout_gravity="top"
+        android:layout_marginVertical="225dp"
         />
 
     <ListView
+
         android:id="@+id/main_list"
         android:layout_marginTop="20dp"
         android:layout_width="match_parent"
@@ -86,40 +90,82 @@
         />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_weight="4.5"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
+        android:layout_weight="3"
         android:gravity="bottom"
         android:layout_marginTop="10dp">
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/main_system_app_visible"
-            android:layout_weight="1"
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="13sp"
-            android:text="@string/switch_system_apps"/>
+            android:layout_weight="1">
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/main_use_google"
-            android:layout_weight="1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="13sp"
-            android:text="@string/switch_use_google"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/main_load_contacts"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:layout_marginEnd="20dp"
+                android:text="@string/switch_load_contacts"/>
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/main_recently_apps"
+            <Button
+                android:id="@+id/main_reload_cache"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="20dp"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:text="@string/button_clear_cache"/>
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="13sp"
-            android:text="@string/switch_recently_apps"/>
+            android:orientation="horizontal"
+            android:gravity="bottom"
+            android:layout_marginTop="10dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/main_system_app_visible"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:text="@string/switch_system_apps"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/main_use_google"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:text="@string/switch_use_google"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/main_recently_apps"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:text="@string/switch_recently_apps"/>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
 
     </androidx.appcompat.widget.LinearLayoutCompat>
+
 
 </androidx.appcompat.widget.LinearLayoutCompat>
