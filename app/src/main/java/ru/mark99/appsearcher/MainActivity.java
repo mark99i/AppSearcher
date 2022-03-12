@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         if (query.length() > 0){
             // Search in internet and reload cache item
             filteredInstalledApps.add(ItemInList.getSearchInInternetItem(this));
-            filteredInstalledApps.add(ItemInList.getReloadCacheItem(this));
+            if (useCache.isChecked()) filteredInstalledApps.add(ItemInList.getReloadCacheItem(this));
         }
 
         adapter.notifyDataSetChanged();
