@@ -1,5 +1,8 @@
 package ru.mark99.appsearcher;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -106,7 +109,18 @@ class Utils {
 
    public static ItemInList findByPackage(ArrayList<ItemInList> fullList, String pack){
       for (ItemInList item : fullList) {
+         if (item.packageName.length() == 0) continue;
+
          if (Objects.equals(item.packageName, pack))
+            return item;
+      }
+      return null;
+   }
+
+   public static ItemInList findByUri(ArrayList<ItemInList> fullList, String strUri){
+      for (ItemInList item : fullList) {
+         if (item.uri == null) continue;
+         if (Objects.equals(item.uri.toString(), strUri))
             return item;
       }
       return null;
@@ -128,6 +142,7 @@ class Utils {
       try {
          String url = urlPrefix + URLEncoder.encode(query, "UTF-8");
          Intent i = new Intent(Intent.ACTION_VIEW);
+         i.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP);
          i.setData(Uri.parse(url));
          context.startActivity(i);
       } catch (UnsupportedEncodingException ignored) {}
@@ -135,6 +150,7 @@ class Utils {
 
    public static void openContact(Context context, ItemInList item){
       Intent intent = new Intent(Intent.ACTION_VIEW, item.uri);
+      intent.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP);
       if (intent.resolveActivity(context.getPackageManager()) != null) {
          context.startActivity(intent);
       }
@@ -142,8 +158,10 @@ class Utils {
 
    public static void openApp(Context context, ItemInList item){
       Intent intent = context.getPackageManager().getLaunchIntentForPackage(item.packageName);
-      if(intent != null)
+      if(intent != null){
+         intent.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP);
          context.startActivity(intent);
+      }
       else
          Toast.makeText(context, item.name + " can't be open (no have launch intent)",
                  Toast.LENGTH_SHORT).show();

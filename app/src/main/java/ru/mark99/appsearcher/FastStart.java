@@ -1,6 +1,7 @@
 package ru.mark99.appsearcher;
 
 import static ru.mark99.appsearcher.Utils.findByPackage;
+import static ru.mark99.appsearcher.Utils.findByUri;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -25,7 +26,14 @@ class FastStart {
 
       storage.clear();
       for (String packageName : arrStrApps) {
-         ItemInList app = findByPackage(fullList, packageName);
+         ItemInList app;
+
+         if (packageName.startsWith("[contact]")){
+            packageName = packageName.substring(9);
+            app = findByUri(fullList, packageName);
+         } else
+            app = findByPackage(fullList, packageName);
+
          if (app == null) continue;
 
          storage.add(app);
@@ -65,8 +73,17 @@ class FastStart {
 
    private void save(SharedPreferences sp){
       ArrayList<String> arrStrApp = new ArrayList<>();
-      for (ItemInList app : storage)
-         arrStrApp.add(app.packageName);
+      for (ItemInList app : storage){
+         switch (app.type){
+            case SystemApp:
+            case App:
+               arrStrApp.add(app.packageName);
+               break;
+            case Contact:
+               arrStrApp.add("[contact]" + app.uri.toString());
+               break;
+         }
+      }
 
       SharedPreferences.Editor editor = sp.edit();
       String strApps = String.join(",", arrStrApp);
