@@ -12,9 +12,9 @@ import java.util.ArrayList;
 
 class AppAdapter extends BaseAdapter {
    public LayoutInflater layoutInflater;
-   public ArrayList<AppItem> apps;
+   public ArrayList<ItemInList> apps;
 
-   AppAdapter(Context context, ArrayList<AppItem> apps){
+   AppAdapter(Context context, ArrayList<ItemInList> apps){
       layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       this.apps = apps;
    }
@@ -47,8 +47,8 @@ class AppAdapter extends BaseAdapter {
       }else{
          listViewHolder = (ViewHolder)convertView.getTag();
       }
-      listViewHolder.textInListView.setText(apps.get(position).getName());
-      listViewHolder.imageInListView.setImageDrawable(apps.get(position).getIcon());
+      listViewHolder.textInListView.setText(apps.get(position).name);
+      listViewHolder.imageInListView.setImageDrawable(apps.get(position).icon);
 
       return convertView;
    }

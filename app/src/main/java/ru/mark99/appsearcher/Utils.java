@@ -1,13 +1,25 @@
 package ru.mark99.appsearcher;
 
+import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.provider.ContactsContract;
+import android.widget.Toast;
 
+import androidx.appcompat.content.res.AppCompatResources;
+
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -16,9 +28,53 @@ import java.util.Objects;
 
 class Utils {
 
-   public static ArrayList<AppItem> getInstalledApps(Context context, boolean scanSystemApps) {
+   @SuppressLint("Range")
+   public static ArrayList<ItemInList> getContacts(Context context) {
+
+      ArrayList<ItemInList> list = new ArrayList<>();
+
+      ContentResolver contentResolver = context.getContentResolver();
+      Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+      if (cursor.getCount() > 0) {
+         while (cursor.moveToNext()) {
+            String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+            if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+               Cursor cursorInfo = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                       ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
+               InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(context.getContentResolver(),
+                       ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id)));
+
+               Uri person = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id));
+
+               Bitmap photo = null;
+               if (inputStream != null) {
+                  photo = BitmapFactory.decodeStream(inputStream);
+
+               }
+               while (cursorInfo.moveToNext()) {
+                  ItemInList info = new ItemInList();
+                  info.type = ItemInList.Type.Contact;
+                  info.uri = person;
+                  info.name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                  if (findByName(list, info.name) != null) continue;
+                  info.number = cursorInfo.getString(cursorInfo.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                  info.icon = inputStream != null ?
+                          new BitmapDrawable(context.getResources(), photo) :
+                          AppCompatResources.getDrawable(context, R.drawable.ic_baseline_contact_phone_24);
+                  list.add(info);
+               }
+
+               cursorInfo.close();
+            }
+         }
+         cursor.close();
+      }
+      return list;
+   }
+   
+   public static ArrayList<ItemInList> getInstalledApps(Context context, boolean scanSystemApps) {
       PackageManager pm = context.getPackageManager();
-      ArrayList<AppItem> apps = new ArrayList<>();
+      ArrayList<ItemInList> apps = new ArrayList<>();
       String thisAppPackage = context.getPackageName();
 
       List<PackageInfo> packs = pm.getInstalledPackages(0);
@@ -33,7 +89,12 @@ class Utils {
          String packages = p.applicationInfo.packageName;
          if (Objects.equals(thisAppPackage, packages)) continue;
 
-         apps.add(new AppItem(appName, icon, packages, isSystem));
+         ItemInList item = new ItemInList();
+         item.type = isSystem ? ItemInList.Type.SystemApp : ItemInList.Type.App;
+         item.name = appName;
+         item.icon = icon;
+         item.packageName = packages;
+         apps.add(item);
       }
 
       return apps;
@@ -43,9 +104,17 @@ class Utils {
       return (pkgInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
    }
 
-   public static AppItem findByPackage(ArrayList<AppItem> fullList, String pack){
-      for (AppItem item : fullList) {
-         if (Objects.equals(item.getPackages(), pack))
+   public static ItemInList findByPackage(ArrayList<ItemInList> fullList, String pack){
+      for (ItemInList item : fullList) {
+         if (Objects.equals(item.packageName, pack))
+            return item;
+      }
+      return null;
+   }
+
+   public static ItemInList findByName(ArrayList<ItemInList> fullList, String name){
+      for (ItemInList item : fullList) {
+         if (Objects.equals(item.name, name))
             return item;
       }
       return null;
@@ -62,5 +131,21 @@ class Utils {
          i.setData(Uri.parse(url));
          context.startActivity(i);
       } catch (UnsupportedEncodingException ignored) {}
+   }
+
+   public static void openContact(Context context, ItemInList item){
+      Intent intent = new Intent(Intent.ACTION_VIEW, item.uri);
+      if (intent.resolveActivity(context.getPackageManager()) != null) {
+         context.startActivity(intent);
+      }
+   }
+
+   public static void openApp(Context context, ItemInList item){
+      Intent intent = context.getPackageManager().getLaunchIntentForPackage(item.packageName);
+      if(intent != null)
+         context.startActivity(intent);
+      else
+         Toast.makeText(context, item.name + " can't be open (no have launch intent)",
+                 Toast.LENGTH_SHORT).show();
    }
 }
