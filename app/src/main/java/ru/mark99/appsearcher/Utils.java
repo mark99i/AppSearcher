@@ -18,7 +18,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.widget.Toast;
 
 import androidx.appcompat.content.res.AppCompatResources;
 
@@ -28,6 +27,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import es.dmoral.toasty.Toasty;
 
 class Utils {
 
@@ -163,7 +164,7 @@ class Utils {
          context.startActivity(intent);
       }
       else
-         Toast.makeText(context, item.name + " can't be open (no have launch intent)",
-                 Toast.LENGTH_SHORT).show();
+         Toasty.error(context, item.name + " can't be open (no have launch intent)",
+                 Toasty.LENGTH_SHORT).show();
    }
 }

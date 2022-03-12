@@ -17,7 +17,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -28,6 +27,8 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     SwitchMaterial recentlyAppVisible;
     SwitchMaterial useGoogle;
     SwitchMaterial useContacts;
+    SwitchMaterial useCache;
     LinearLayoutCompat recentlyAppsLayout;
     ArrayList<ItemInList> fullInstalledApps;
     ArrayList<ItemInList> filteredInstalledApps;
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         recentlyAppsLayout = findViewById(R.id.main_recently_apps_layout);
         loadingPB = findViewById(R.id.main_loading_progress_bar);
         useContacts = findViewById(R.id.main_load_contacts);
+        useCache = findViewById(R.id.main_use_cache);
 
         fastStartAppsIV = new ArrayList<>(Arrays.asList(
                 findViewById(R.id.main_fast_start1),
@@ -95,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         systemAppVisible.setChecked(sharedPreferences.getBoolean("showSystem", false));
         recentlyAppVisible.setChecked(sharedPreferences.getBoolean("showRecentlyApps", true));
         useGoogle.setChecked(sharedPreferences.getBoolean("useGoogle", false));
+        useCache.setChecked(sharedPreferences.getBoolean("useCache", true));
         useContacts.setChecked(
                 sharedPreferences.getBoolean("useContacts", false) &&
                 checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED);
@@ -123,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
         systemAppVisible.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged(true));
         recentlyAppVisible.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged(false));
         useGoogle.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged(false));
+        useCache.setOnCheckedChangeListener((compoundButton, b) -> onSwitchesChanged(true));
         useContacts.setOnCheckedChangeListener((compoundButton, b) -> checkAndRequestContactsPermissions());
 
         new Thread(this::loadInstalledAppsAsync).start();
@@ -150,9 +155,13 @@ public class MainActivity extends AppCompatActivity {
         editor.putBoolean("showRecentlyApps", recentlyAppVisible.isChecked());
         editor.putBoolean("useGoogle", useGoogle.isChecked());
         editor.putBoolean("useContacts", useContacts.isChecked());
+        editor.putBoolean("useCache", useCache.isChecked());
         editor.apply();
         recentlyAppsLayout.setVisibility(recentlyAppVisible.isChecked() ? View.VISIBLE : View.GONE);
         if (needReload) reloadCache();
+
+        if (!useCache.isChecked() && useContacts.isChecked())
+            Toasty.warning(this, "Using contacts search without using the cache can take a long time", Toasty.LENGTH_LONG).show();
     }
 
     private void onInputTextChanged(){
@@ -190,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
     private void onItemInListClick(ItemInList item){
         switch (item.type){
             case SearchInInternet:
-                searchQuery(this, textInput.getText().toString(), sharedPreferences.getBoolean("useGoogle", false));
+                searchQuery(this, textInput.getText().toString(), useGoogle.isChecked());
                 break;
 
             case Contact:
@@ -221,19 +230,31 @@ public class MainActivity extends AppCompatActivity {
             systemAppVisible.setEnabled(false);
             recentlyAppVisible.setEnabled(false);
             useContacts.setEnabled(false);
+            useCache.setEnabled(false);
         });
 
         if (cache == null) cache = new Cache(this);
 
-        ArrayList<ItemInList> loaded = new ArrayList<>(cache.db.inListDao().getAll());
-        if (loaded.size() == 0)
+        ArrayList<ItemInList> loaded;
+
+        if (useCache.isChecked()){
+            loaded = new ArrayList<>(cache.db.inListDao().getAll());
+            if (loaded.size() == 0)
+            {
+                Log.i("loadInstalledAppsAsync", "Load cache is 0 positions, full info loading...");
+                loaded = Utils.getInstalledApps(this, true);
+                if (useContacts.isChecked())
+                    loaded.addAll(Utils.getContacts(this));
+                cache.saveToCacheFull(loaded);
+            }
+        }
+        else
         {
-            Log.i("loadInstalledAppsAsync", "Load cache is 0 positions, full info loading...");
-            loaded = Utils.getInstalledApps(this, true);
+            loaded = Utils.getInstalledApps(this, systemAppVisible.isChecked());
             if (useContacts.isChecked())
                 loaded.addAll(Utils.getContacts(this));
-            cache.saveToCacheFull(loaded);
         }
+
 
         fastStartApps.load(this, sharedPreferences, loaded);
 
@@ -252,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
             systemAppVisible.setEnabled(true);
             recentlyAppVisible.setEnabled(true);
             useContacts.setEnabled(true);
+            useCache.setEnabled(true);
         });
     }
 
@@ -279,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
             onSwitchesChanged(true);
         } else {
             useContacts.setChecked(false);
-            Toast.makeText(this, "No read_contacts permissions", Toast.LENGTH_SHORT).show();
+            Toasty.error(this, "No read_contacts permissions", Toasty.LENGTH_SHORT).show();
         }
 
         requestPermissionMode = false;

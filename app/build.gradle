@@ -9,8 +9,8 @@ android {
         applicationId "ru.mark99.appsearcher"
         minSdk 26
         targetSdk 31
-        versionCode 4
-        versionName "1.5"
+        versionCode 5
+        versionName "1.6"
 
         project.archivesBaseName = "AppSearcher.v" + defaultConfig.versionName
         project.ext.set("archivesBaseName", "AppSearcher.v" + defaultConfig.versionName)
@@ -33,7 +33,9 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.4.2'
     annotationProcessor 'androidx.room:room-compiler:2.4.2'
 
+    implementation 'com.github.GrenderG:Toasty:1.5.2'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
+
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
