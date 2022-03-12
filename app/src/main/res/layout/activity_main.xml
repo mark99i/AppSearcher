@@ -108,8 +108,18 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:textSize="13sp"
-                android:layout_marginHorizontal="100dp"
+                android:layout_marginHorizontal="10dp"
                 android:text="@string/switch_load_contacts"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/main_use_cache"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:layout_marginHorizontal="10dp"
+                android:text="@string/switch_use_cache"/>
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <androidx.appcompat.widget.LinearLayoutCompat

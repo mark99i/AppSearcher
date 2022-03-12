@@ -5,4 +5,5 @@
     <string name="switch_use_google">Google</string>
     <string name="switch_load_contacts">Contacts</string>
     <string name="button_clear_cache">Reload cache</string>
+    <string name="switch_use_cache">Use cache</string>
 </resources>
