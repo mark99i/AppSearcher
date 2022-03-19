@@ -22,13 +22,13 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/main_recently_apps_layout"
         android:paddingVertical="10dp"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/main_fast_start1"
+            android:background="@android:color/transparent"
             android:layout_weight="1"
             android:layout_marginHorizontal="5dp"
             android:layout_width="50dp"
@@ -37,6 +37,7 @@
 
         <ImageView
             android:id="@+id/main_fast_start2"
+            android:background="@android:color/transparent"
             android:layout_weight="1"
             android:layout_marginHorizontal="10dp"
             android:layout_width="50dp"
@@ -45,6 +46,7 @@
 
         <ImageView
             android:id="@+id/main_fast_start3"
+            android:background="@android:color/transparent"
             android:layout_weight="1"
             android:layout_marginHorizontal="10dp"
             android:layout_width="50dp"
@@ -53,6 +55,7 @@
 
         <ImageView
             android:id="@+id/main_fast_start4"
+            android:background="@android:color/transparent"
             android:layout_weight="1"
             android:layout_marginHorizontal="10dp"
             android:layout_width="50dp"
@@ -61,6 +64,7 @@
 
         <ImageView
             android:id="@+id/main_fast_start5"
+            android:background="@android:color/transparent"
             android:layout_weight="1"
             android:layout_marginHorizontal="10dp"
             android:layout_width="50dp"

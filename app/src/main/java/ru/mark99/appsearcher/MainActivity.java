@@ -8,6 +8,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,13 +17,13 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.LinearLayoutCompat;
 
+import com.github.ybq.android.spinkit.SpinKitView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
 
-    ProgressBar loadingPB;
+    SpinKitView loadingPB;
     EditText textInput;
     ListView listView;
     SwitchMaterial systemAppVisible;
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         filteredInstalledApps = new ArrayList<>();
         adapter = new AppAdapter(this, filteredInstalledApps);
         listView.setAdapter(adapter);
+        loadingPB.setColor(Color.rgb(255, 140, 0));
 
         textInput.addTextChangedListener(new TextWatcher() {
             @Override
