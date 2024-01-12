@@ -12,11 +12,11 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdk 31
         versionCode 5
-        versionName "1.6"
+        versionName "1.7b"
 
         project.archivesBaseName = "AppSearcher.v" + defaultConfig.versionName
         project.ext.set("archivesBaseName", "AppSearcher.v" + defaultConfig.versionName)
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {

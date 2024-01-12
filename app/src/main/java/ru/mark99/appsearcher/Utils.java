@@ -92,6 +92,7 @@ class Utils {
          Drawable icon = p.applicationInfo.loadIcon(pm);
          String packages = p.applicationInfo.packageName;
          if (Objects.equals(thisAppPackage, packages)) continue;
+         if (pm.getLaunchIntentForPackage(packages) == null) continue;
 
          ItemInList item = new ItemInList();
          item.type = isSystem ? ItemInList.Type.SystemApp : ItemInList.Type.App;
