@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        systemAppVisible.setChecked(sharedPreferences.getBoolean("showSystem", false));
+        systemAppVisible.setChecked(sharedPreferences.getBoolean("showSystem", true));
         recentlyAppVisible.setChecked(sharedPreferences.getBoolean("showRecentlyApps", true));
         useGoogle.setChecked(sharedPreferences.getBoolean("useGoogle", false));
         useCache.setChecked(sharedPreferences.getBoolean("useCache", true));
