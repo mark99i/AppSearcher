@@ -10,7 +10,7 @@ In addition to the basic functionality, this application:
 - Uses cache for fast open
 
 ## Installation
-Download and install APK from [Releases](releases)
+Download and install APK from [Releases](../../releases)
 
 **Global MIUI ROMs**  
 Need connect ADB shell (or run in local terminal) and disable preinstalled applications: 
