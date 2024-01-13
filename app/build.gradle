@@ -1,6 +1,18 @@
+import java.text.SimpleDateFormat
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+}
+
+def getVersionName = { ->
+    def df = new SimpleDateFormat("yy.MM.dd.HH")
+    def date = Date.from(ZonedDateTime.now().toInstant())
+    return df.format(date)
+}
+
+def getVersionCode = {
+    return Integer.parseInt(getVersionName().replaceAll("\\.", ""))
 }
 
 android {
@@ -12,8 +24,8 @@ android {
 
         //noinspection ExpiredTargetSdkVersion
         targetSdk 31
-        versionCode 5
-        versionName "1.7b"
+        versionCode getVersionCode()
+        versionName getVersionName()
 
         project.archivesBaseName = "AppSearcher.v" + defaultConfig.versionName
         project.ext.set("archivesBaseName", "AppSearcher.v" + defaultConfig.versionName)
