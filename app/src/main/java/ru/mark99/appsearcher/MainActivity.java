@@ -28,6 +28,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import es.dmoral.toasty.Toasty;
 
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     FastStart fastStartApps = new FastStart();
 
     Cache cache;
+    FilterEngine filterEngine;
 
     boolean requestPermissionMode = false;
 
@@ -133,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
         useContacts.setOnCheckedChangeListener((compoundButton, b) -> checkAndRequestContactsPermissions());
 
         new Thread(this::loadInstalledAppsAsync).start();
+        filterEngine = new FilterEngine();
     }
 
     private void checkAndRequestContactsPermissions(){
@@ -179,10 +182,20 @@ public class MainActivity extends AppCompatActivity {
         boolean contacts = useContacts.isChecked();
 
         filteredInstalledApps.clear();
-        //filteredInstalledApps.addAll(cache.ge(query, sharedPreferences.getBoolean("showSystem", false)));
+
+        Pattern pattern = filterEngine.makeRegexp(query);
 
         for (ItemInList item : fullInstalledApps) {
-            if (item.name.toLowerCase().contains(query.toLowerCase())) {
+            if (pattern.matcher(item.name.toLowerCase()).find()) {
+                if (item.type == ItemInList.Type.Contact && !contacts) continue;
+                if (item.type == ItemInList.Type.SystemApp && !sysApps) continue;
+                filteredInstalledApps.add(item);
+            }
+        }
+
+        for (ItemInList item : fullInstalledApps) {
+            if (filteredInstalledApps.contains(item)) continue;
+            if (pattern.matcher(item.packageName.toLowerCase()).find()) {
                 if (item.type == ItemInList.Type.Contact && !contacts) continue;
                 if (item.type == ItemInList.Type.SystemApp && !sysApps) continue;
                 filteredInstalledApps.add(item);
